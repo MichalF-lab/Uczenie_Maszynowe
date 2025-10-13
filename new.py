@@ -1,5 +1,4 @@
 
-
 import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression
@@ -9,19 +8,21 @@ class LinearRegr:
         # wejscie:
         #  X = np.array, shape = (n, m)
         #  Y = np.array, shape = (n)
-        # Znajduje theta minimalizujace kwadratowa funkcje kosztu L uzywajac wzoru.
         # Uwaga: przed zastosowaniem wzoru do X nalezy dopisac kolumne zlozona z jedynek.
         n, m = X.shape
-        self.theta = np.zeros((m+1))
+        # Znajduje theta minimalizujace kwadratowa funkcje kosztu L uzywajac wzoru.
+        X_extended = np.c_[np.ones((n, 1)), X]
+        self.theta = np.linalg.inv(X_extended.T @ X_extended) @ X_extended.T @ Y
         return self
     
     def predict(self, X):
         # wejscie
         #  X = np.array, shape = (k, m)
-        # zwraca,
-        #  Y = wektor(f(X_1), ..., f(X_k))
+        # zwraca
         k, m = X.shape
-        return np.zeros((k))
+        X_extended = np.c_[np.ones((k, 1)), X]
+        return X_extended @ self.theta
+        #  Y = wektor(f(X_1), ..., f(X_k))
 
 
 def test_RegressionInOneDim():
@@ -39,4 +40,3 @@ def test_RegressionInThreeDim():
     expected = LinearRegression().fit(X, Y).predict(a)
     actual = LinearRegr().fit(X, Y).predict(a)
     assert list(actual) == pytest.approx(list(expected))
-    
