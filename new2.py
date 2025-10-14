@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from scipy.stats import alpha
 from sklearn.linear_model import Ridge
 
 class RidgeRegr:
@@ -14,16 +15,18 @@ class RidgeRegr:
         #  Y = np.array, shape = (n)
         # Znajduje theta (w przyblizeniu) minimalizujace kwadratowa funkcje kosztu L uzywajac metody iteracyjnej.
         n, m = X.shape
-        self.theta = np.zeros((m+1))
+        for _ in range(1000):
+            X_extended = np.c_[np.ones((n, 1)), X]
+            self.theta = np.linalg.inv(X_extended.T @ X_extended + (self.alpha * np.ones(n))) @ X_extended.T @ Y
         return self
     
     def predict(self, X):
         # wejscie
         #  X = np.array, shape = (k, m)
         # zwraca
-        #  Y = wektor(f(X_1), ..., f(X_k))
         k, m = X.shape
-        return np.zeros((k))
+        X_extended = np.c_[np.ones((k, 1)), X]
+        return X_extended @ self.theta
 
 
 def test_RidgeRegressionInOneDim():
