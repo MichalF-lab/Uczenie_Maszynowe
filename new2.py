@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from asyncio.windows_events import NULL
+from math import nan
 import numpy as np
 import pytest
 from scipy.stats import alpha
@@ -14,10 +16,20 @@ class RidgeRegr:
         #  X = np.array, shape = (n, m)
         #  Y = np.array, shape = (n)
         # Znajduje theta (w przyblizeniu) minimalizujace kwadratowa funkcje kosztu L uzywajac metody iteracyjnej.
+
         n, m = X.shape
-        for _ in range(1000):
-            X_extended = np.c_[np.ones((n, 1)), X]
-            self.theta = np.linalg.inv(X_extended.T @ X_extended + (self.alpha * np.ones(n))) @ X_extended.T @ Y
+        X_extended = np.c_[np.ones((n, 1)), X]
+        self.theta = np.zeros(m + 1)
+
+        for _ in range(150000):
+            predictions = X_extended @ self.theta
+            # B³¹d
+            errors = (predictions - Y)
+            # Gradient
+            gradient = (2 / n) * (X_extended.T @ errors) + (2 * self.alpha / n) * self.theta
+            gradient[0] = (2 / n) * np.sum(errors) # Nie karzemy biasu
+            # Aktualizacja theta
+            self.theta = self.theta - 0.0005 * gradient
         return self
     
     def predict(self, X):

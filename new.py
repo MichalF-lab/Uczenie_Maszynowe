@@ -8,21 +8,20 @@ class LinearRegr:
         # wejscie:
         #  X = np.array, shape = (n, m)
         #  Y = np.array, shape = (n)
-        # Uwaga: przed zastosowaniem wzoru do X nalezy dopisac kolumne zlozona z jedynek.
         n, m = X.shape
-        # Znajduje theta minimalizujace kwadratowa funkcje kosztu L uzywajac wzoru.
+        # Uwaga: przed zastosowaniem wzoru do X nalezy dopisac kolumne zlozona z jedynek.
         X_extended = np.c_[np.ones((n, 1)), X]
+        # Znajduje theta minimalizujace kwadratowa funkcje kosztu L uzywajac wzoru.
         self.theta = np.linalg.inv(X_extended.T @ X_extended) @ X_extended.T @ Y
         return self
     
     def predict(self, X):
         # wejscie
         #  X = np.array, shape = (k, m)
-        # zwraca
         k, m = X.shape
         X_extended = np.c_[np.ones((k, 1)), X]
-        return X_extended @ self.theta
         #  Y = wektor(f(X_1), ..., f(X_k))
+        return X_extended @ self.theta
 
 
 def test_RegressionInOneDim():
