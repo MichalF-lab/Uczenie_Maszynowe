@@ -4,6 +4,7 @@ import pytest
 from sklearn.linear_model import LinearRegression
 
 class LinearRegr:
+
     def fit(self, X, Y):
         # wejscie:
         #  X = np.array, shape = (n, m)
@@ -31,6 +32,8 @@ def test_RegressionInOneDim():
     expected = LinearRegression().fit(X, Y).predict(a)
     actual = LinearRegr().fit(X, Y).predict(a)
     assert list(actual) == pytest.approx(list(expected))
+    for i in range(len(actual)):
+        print(f"Predicted: {actual[i]}, Expected: {expected[i]}")
 
 def test_RegressionInThreeDim():
     X = np.array([1,2,3,5,4,5,4,3,3,3,2,5]).reshape((4,3))
@@ -39,3 +42,5 @@ def test_RegressionInThreeDim():
     expected = LinearRegression().fit(X, Y).predict(a)
     actual = LinearRegr().fit(X, Y).predict(a)
     assert list(actual) == pytest.approx(list(expected))
+    for i in range(len(actual)):
+        print(f"Predicted: {actual[i]}, Expected: {expected[i]}")

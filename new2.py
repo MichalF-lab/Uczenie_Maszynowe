@@ -11,7 +11,7 @@ class RidgeRegr:
     def __init__(self, alpha = 0.0):
         self.alpha = alpha
 
-    def fit(self, X, Y):
+    def fit(self, X, Y, learning_rate = 0.0005):
         # wejscie:
         #  X = np.array, shape = (n, m)
         #  Y = np.array, shape = (n)
@@ -23,13 +23,10 @@ class RidgeRegr:
 
         for _ in range(150000):
             predictions = X_extended @ self.theta
-            # B³¹d
             errors = (predictions - Y)
-            # Gradient
             gradient = (2 / n) * (X_extended.T @ errors) + (2 * self.alpha / n) * self.theta
             gradient[0] = (2 / n) * np.sum(errors) # Nie karzemy biasu
-            # Aktualizacja theta
-            self.theta = self.theta - 0.0005 * gradient
+            self.theta = self.theta - learning_rate * gradient
         return self
     
     def predict(self, X):
@@ -49,6 +46,8 @@ def test_RidgeRegressionInOneDim():
     expected = Ridge(alpha).fit(X, Y).predict(X_test)
     actual = RidgeRegr(alpha).fit(X, Y).predict(X_test)
     assert list(actual) == pytest.approx(list(expected), rel=1e-5)
+    for i in range(len(actual)):
+        print(f"Predicted: {actual[i]}, Expected: {expected[i]}")
 
 def test_RidgeRegressionInThreeDim():
     X = np.array([1,2,3,5,4,5,4,3,3,3,2,5]).reshape((4,3))
@@ -58,4 +57,6 @@ def test_RidgeRegressionInThreeDim():
     expected = Ridge(alpha).fit(X, Y).predict(X_test)
     actual = RidgeRegr(alpha).fit(X, Y).predict(X_test)
     assert list(actual) == pytest.approx(list(expected), rel=1e-3)
+    for i in range(len(actual)):
+        print(f"Predicted: {actual[i]}, Expected: {expected[i]}")
     
