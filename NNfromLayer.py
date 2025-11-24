@@ -134,9 +134,16 @@ class siec():
         for warstwa in self.siec[::-1]:
             blad = warstwa.backpropagation(blad)
    
-    def train(self, epoki=13):
-        # TODO
-        pass
+    def train(self, epochs=5):
+        for epoch in range(epochs):
+            cp.random.shuffle(self.dane_z_wynikami)
+            for i, dane in enumerate(self.dane_z_wynikami):
+                self.feedforward(dane[0])
+                self.backpropagation(dane)
+                if (i + 1) % 1000 == 0:
+                    print(f"Epoch {epoch + 1}, Sample {i + 1} trained.")
+            accuracy = self.evaluate(self.validation_data)
+            print(f"Epoch {epoch + 1} complete. Validation accuracy: {accuracy} / {len(self.validation_data)}")
     
     def evaluate(self, test_data):
         correct = 0
