@@ -133,7 +133,7 @@ class siec():
 
 
     def train(self):
-        for epoch in range(6):
+        for epoch in range(7):
             print(f"Epoch {epoch + 1}")
             for dane in self.dane_z_wynikami:
                 self.feedforward(dane[0])
@@ -162,3 +162,7 @@ dane_wyjscowe = 10
 
 siec1 = siec([dane_wejsciowe, 12, 12, dane_wyjscowe], training_data, validation_data)
 siec1.train()
+test_data = list(test_data)
+print(test_data[0])
+print(f"Dane poprawne: {siec1.evaluate(test_data)}")
+print(f"Laczna ilosc danych testowych: {len(test_data)}")
