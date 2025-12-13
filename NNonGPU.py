@@ -5,6 +5,7 @@ import gzip
 import numpy as np
 import cupy as cp
 
+cp.random.seed(2112)
 
 def load_data():
     """Return the MNIST data as a tuple containing the training data,
@@ -70,12 +71,17 @@ def vectorized_result(j):
 def load_data_wrapper_cupy():
     training_data, validation_data, test_data = load_data_wrapper()
     
+    training_data = list(training_data)
+    validation_data = list(validation_data)
+    test_data = list(test_data)
+
     # Convert to CuPy arrays
     training_data = [(cp.asarray(x), cp.asarray(y)) for x, y in training_data]
-    validation_data = [(cp.asarray(x), y) for x, y in validation_data]
-    test_data = [(cp.asarray(x), y) for x, y in test_data]
+    validation_data = [(cp.asarray(x), cp.asarray(vectorized_result(y))) for x, y in validation_data]
+    test_data = [(cp.asarray(x), cp.asarray(vectorized_result(y))) for x, y in test_data]
     
     return (training_data, validation_data, test_data)
+    
 
 
 class siec():
@@ -87,10 +93,21 @@ class siec():
 
         self.wagi = []
         for i in range(1, len(siec_wymiary)):
-            self.wagi.append(cp.random.randn(siec_wymiary[i-1],siec_wymiary[i]))
+            self.wagi.append(cp.random.randn(siec_wymiary[i],siec_wymiary[i-1]))
         self.bias = []
         for i in range(1, len(siec_wymiary)):
             self.bias.append(cp.random.randn(siec_wymiary[i]))
+
+        
+        self.X_train = cp.hstack([x for x, y in training_data]) 
+        self.Y_train = cp.hstack([y for x, y in training_data])  
+    
+
+        self.X_val = cp.hstack([x for x, y in validation_data])
+        self.Y_val = cp.hstack([y for x, y in validation_data])
+
+        self.X_tes = cp.hstack([x for x, y in test_data])
+        self.Y_tes = cp.hstack([y for x, y in test_data])
 
     def sigmoid(self, x):
         return 1.0 / (1.0 + cp.exp(-x))
@@ -99,37 +116,81 @@ class siec():
         return self.sigmoid(x) * (1.0 - self.sigmoid(x))
 
     def feedforward(self, dane):
-        self.wynik = dane
-        for i in range(len(self.siec_wymiary)):
-            self.wynik = self.sigmoid(cp.dot(self.wagi[i], self.wynik) + self.bias[i])
+        self.aktywacje = [dane]
+        temp = dane
+        for i in range(len(self.wagi)):
+            temp = self.sigmoid(cp.dot(self.wagi[i], temp) + self.bias[i].reshape(-1, 1))
+            self.aktywacje.append(temp)
+        self.wynik = temp 
         return self.wynik
-
+    """
     def backpropagation(self, dane):
         learning_rate = 0.05
-        blad = dane[1] - self.wynik]
-        for i in range(len(self.siec_wymiary)-1, -1, -1):
-            gradient = blad * self.sigmoid_derivative(self.wynik)
-            self.wagi[i] += cp.dot(gradient, self.wynik.T) * learning_rate
-            self.bias[i] += gradient * learning_rate
-            blad = cp.dot(self.wagi[i].T, gra)
+        blad = dane[1] - self.wynik
+    
+        for i in range(len(self.wagi)-1, -1, -1):
+            gradient = blad * self.sigmoid_derivative(self.aktywacje[i+1])
+            self.wagi[i] += learning_rate * cp.dot(gradient, self.aktywacje[i].T)
+            self.bias[i] += learning_rate * gradient.squeeze()
+            if i > 0:
+                blad = cp.dot(self.wagi[i].T, gradient)
+    """
+    def backpropagation_batch(self, X, y, learning_rate):
+        batch_size = X.shape[1]
+    
+        blad = y - self.wynik
+    
+        for i in range(len(self.wagi)-1, -1, -1):
+            gradient = blad * self.sigmoid_derivative(self.aktywacje[i+1])
+            self.wagi[i] += (learning_rate / batch_size) * cp.dot(gradient, self.aktywacje[i].T)
+            self.bias[i] += (learning_rate / batch_size) * cp.sum(gradient, axis=1)
+            if i > 0:
+                blad = cp.dot(self.wagi[i].T, gradient)
 
 
     def train(self):
+        import random
+        batch_size = 64
+        num_samples = self.X_train.shape[1]
+        learning_rate = 0.7
         for epoch in range(13):
             print(f"Epoch {epoch + 1}")
-            for dane in self.dane_z_wynikami:
-                self.feedforward(dane[0])
-                self.backpropagation(dane[0])
-            print(self.evaluate(self.validation_data), "/", len(self.validation_data))
+        
+            # Shuffle na GPU
+            perm = cp.random.permutation(num_samples)
+            X_shuffled = self.X_train[:, perm]
+            Y_shuffled = self.Y_train[:, perm]
+        
+            # Process batches
+            for i in range(0, num_samples, batch_size):
+                X_batch = X_shuffled[:, i:i+batch_size]
+                Y_batch = Y_shuffled[:, i:i+batch_size]
+            
+                self.feedforward(X_batch)
+                self.backpropagation_batch(X_batch, Y_batch, learning_rate)
+        
+            print(self.evaluate(), "/", self.X_val.shape[1])
+            learning_rate *= 0.85  # Decay learning rate
+
+    def evaluate(self):
+
+        output_matrix = self.feedforward(self.X_val) 
     
-    def evaluate(self, test_data):
-        correct = 0
-        for x, y in test_data:
-            output = self.feedforward(x)
-            predicted = cp.argmax(output)
-            actual = cp.argmax(y) if isinstance(y, cp.ndarray) else int(y)
-            correct += int(predicted == actual)
-        return 
+        predicted = cp.argmax(output_matrix, axis=0)
+        actual = cp.argmax(self.Y_val, axis=0)
+    
+        correct = cp.sum(predicted == actual).item()
+        return correct
+    
+    def test(self):
+        output_matrix = self.feedforward(self.X_tes) 
+    
+        predicted = cp.argmax(output_matrix, axis=0)
+        actual = cp.argmax(self.Y_tes, axis=0)
+    
+        correct = cp.sum(predicted == actual).item()
+        print(f"Test accuracy: {correct} / {self.X_tes.shape[1]}")
+
 
 
 training_data, validation_data, test_data = load_data_wrapper_cupy()
@@ -138,5 +199,7 @@ training_data, validation_data, test_data = load_data_wrapper_cupy()
 dane_wejsciowe = 784
 dane_wyjscowe = 10
 
-siec1 = siec([dane_wejsciowe, 12, 12, dane_wyjscowe], training_data, validation_data, test_data)
+siec1 = siec([dane_wejsciowe, 300, 90, dane_wyjscowe], training_data, validation_data, test_data)
 siec1.train()
+siec1.test()
+
