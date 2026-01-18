@@ -106,12 +106,35 @@ class siec():
 
     def backpropagation(self, dane):
         learning_rate = 0.05
+<<<<<<< HEAD
         blad = dane[1] - self.wynik]
         for i in range(len(self.siec_wymiary)-1, -1, -1):
             gradient = blad * self.sigmoid_derivative(self.wynik)
             self.wagi[i] += cp.dot(gradient, self.wynik.T) * learning_rate
             self.bias[i] += gradient * learning_rate
             blad = cp.dot(self.wagi[i].T, gra)
+=======
+        blad = dane[1] - self.wynik
+    
+        for i in range(len(self.wagi)-1, -1, -1):
+            gradient = blad * self.sigmoid_derivative(self.aktywacje[i+1])
+            self.wagi[i] += learning_rate * cp.dot(gradient, self.aktywacje[i].T)
+            self.bias[i] += learning_rate * gradient.squeeze()
+            if i > 0:
+                blad = cp.dot(self.wagi[i].T, gradient)
+    """
+    def backpropagation_batch(self, X, y, learning_rate):
+        batch_size = X.shape[1]
+    
+        blad = y - self.wynik
+    
+        for i in range(len(self.wagi)-1, -1, -1):
+            gradient = blad * self.sigmoid_derivative(self.aktywacje[i+1])
+            self.wagi[i] += (learning_rate / batch_size) * cp.dot(gradient, self.aktywacje[i].T)
+            self.bias[i] += (learning_rate / batch_size) * cp.sum(gradient, axis=1)
+            if i > 0:
+                blad = cp.dot(self.wagi[i].T, gradient)
+>>>>>>> 106eaa4ad2b3692dd4207d71987711b2d64ff131
 
 
     def train(self):
@@ -138,5 +161,12 @@ training_data, validation_data, test_data = load_data_wrapper_cupy()
 dane_wejsciowe = 784
 dane_wyjscowe = 10
 
+<<<<<<< HEAD
 siec1 = siec([dane_wejsciowe, 12, 12, dane_wyjscowe], training_data, validation_data, test_data)
 siec1.train()
+=======
+siec1 = siec([dane_wejsciowe, 300, 90, dane_wyjscowe], training_data, validation_data, test_data)
+siec1.train()
+siec1.test()
+
+>>>>>>> 106eaa4ad2b3692dd4207d71987711b2d64ff131
