@@ -106,12 +106,12 @@ class siec():
 
     def backpropagation(self, dane):
         learning_rate = 0.05
-        blad = dane[1] - self.wynik
+        blad = dane[1] - self.wynik]
         for i in range(len(self.siec_wymiary)-1, -1, -1):
             gradient = blad * self.sigmoid_derivative(self.wynik)
             self.wagi[i] += cp.dot(gradient, self.wynik.T) * learning_rate
             self.bias[i] += gradient * learning_rate
-            blad = cp.dot(self.wagi[i].T, gradient)
+            blad = cp.dot(self.wagi[i].T, gra)
 
 
     def train(self):
@@ -139,9 +139,4 @@ dane_wejsciowe = 784
 dane_wyjscowe = 10
 
 siec1 = siec([dane_wejsciowe, 12, 12, dane_wyjscowe], training_data, validation_data, test_data)
-#siec1.train()
-test_data = list(test_data)
-print(test_data[0])
-print(f"Dane poprawne: {siec1.evaluate(test_data)}")
-print(f"Laczna ilosc danych testowych: {len(test_data)}")
-
+siec1.train()

@@ -73,7 +73,7 @@ class neuron():
         self.wagi = np.random.randn(rozmiar_poprzedniej_warstwy)
         self.z = 0
         self.output = 0
-        self.learning_rate = 0.08
+        self.learning_rate = 0.1
         self.wejscie = None
         self.blad = None
 
@@ -160,7 +160,5 @@ validation_data = list(validation_data)
 dane_wejsciowe = 784
 dane_wyjscowe = 10
 
-siec1 = siec([dane_wejsciowe, 15, 9, dane_wyjscowe], training_data, validation_data)
+siec1 = siec([dane_wejsciowe, 5, 5, dane_wyjscowe], training_data, validation_data)
 siec1.train()
-print(siec1.evaluate(test_data))
-print(len(test_data))
