@@ -174,4 +174,4 @@ for i in range(n*n):
         break
     who_move *= -1
 for row in a:
-    print(row)
+    print('[' + ', '.join(f'{x:2}' for x in row) + ']')
